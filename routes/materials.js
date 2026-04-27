@@ -6,26 +6,32 @@ const Material   = require('../models/Material');
 const { protect } = require('../middleware/authMiddleware');
 const router     = express.Router();
 
-// Configure Cloudinary
+// Configure Cloudinary explicitly
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Log to confirm values are loading (remove after fix)
+console.log('Cloudinary cloud_name:', process.env.CLOUDINARY_CLOUD_NAME);
+console.log('Cloudinary api_key:', process.env.CLOUDINARY_API_KEY);
+
 // Setup Cloudinary storage
 const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder:         'flashmaster',
-    resource_type:  'auto',
-    allowed_formats: ['pdf', 'png', 'jpg', 'jpeg', 'txt', 'pptx', 'docx'],
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    return {
+      folder:        'flashmaster',
+      resource_type: 'raw',
+      public_id:     Date.now() + '-' + file.originalname,
+    };
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-// POST /api/materials — upload material to Cloudinary
+// POST /api/materials
 router.post('/', protect, upload.single('file'), async (req, res) => {
   try {
     const { subject, title, topic } = req.body;
@@ -41,12 +47,12 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
 
     res.status(201).json(material);
   } catch (err) {
-    console.error('Upload error:', err.message);
+    console.error('Upload error:', err);
     res.status(500).json({ msg: 'Upload failed', error: err.message });
   }
 });
 
-// GET /api/materials — get all materials for logged in user
+// GET /api/materials
 router.get('/', protect, async (req, res) => {
   try {
     const materials = await Material.find({ userId: req.user.id }).sort({ createdAt: -1 });
