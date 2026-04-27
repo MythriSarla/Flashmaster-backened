@@ -28,17 +28,24 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
     let fileType = '';
 
     if (req.file) {
+      console.log('File buffer size:', req.file.buffer.length);
+      console.log('File mimetype:', req.file.mimetype);
+
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: 'flashmaster',
-            resource_type: 'auto',
-            format: 'pdf',
-            public_id: Date.now().toString(),
+            resource_type: 'raw',
+            public_id: Date.now().toString() + '.pdf',
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              console.log('Cloudinary error:', error);
+              reject(error);
+            } else {
+              console.log('Cloudinary result:', result.secure_url);
+              resolve(result);
+            }
           }
         );
         stream.end(req.file.buffer);
