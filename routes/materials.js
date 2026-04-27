@@ -14,14 +14,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ✅ Storage setup
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => ({
-    folder: 'flashmaster',
-    resource_type: 'auto',
-    public_id: Date.now() + '-' + file.originalname,
-  }),
+  params: async (req, file) => {
+    let resourceType = 'auto';
+
+    // 🔥 Force proper handling
+    if (file.mimetype.startsWith('image/')) {
+      resourceType = 'image';
+    } else if (file.mimetype === 'application/pdf') {
+      resourceType = 'image'; // PDF preview support
+    } else {
+      resourceType = 'raw';
+    }
+
+    return {
+      folder: 'flashmaster',
+      resource_type: resourceType,
+      public_id: Date.now() + '-' + file.originalname,
+    };
+  },
 });
 
 const upload = multer({ storage });
