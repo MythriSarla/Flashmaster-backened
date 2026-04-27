@@ -17,15 +17,16 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
-    let resourceType = 'auto';
 
-    // 🔥 Force proper handling
+    let resourceType = 'raw';
+
+    // ✅ Force PDF + images to open in browser
+    if (file.mimetype === 'application/pdf') {
+      resourceType = 'image';   // 🔥 THIS IS THE KEY FIX
+    }
+
     if (file.mimetype.startsWith('image/')) {
       resourceType = 'image';
-    } else if (file.mimetype === 'application/pdf') {
-      resourceType = 'image'; // PDF preview support
-    } else {
-      resourceType = 'raw';
     }
 
     return {
@@ -35,7 +36,6 @@ const storage = new CloudinaryStorage({
     };
   },
 });
-
 const upload = multer({ storage });
 
 // ============================
