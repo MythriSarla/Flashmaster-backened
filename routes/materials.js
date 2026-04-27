@@ -11,12 +11,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ✅ Use memoryStorage — upload buffer directly to Cloudinary
 const upload = multer({ storage: multer.memoryStorage() });
 
-// ============================
-// ✅ POST /api/materials
-// ============================
 router.post('/', protect, upload.single('file'), async (req, res) => {
   try {
     let { subject, title, topic } = req.body;
@@ -32,13 +28,13 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
     let fileType = '';
 
     if (req.file) {
-      // ✅ Upload buffer to Cloudinary with resource_type auto
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: 'flashmaster',
-            resource_type: 'raw',   // ✅ raw works for ALL file types including PDF
-            public_id: Date.now() + '-' + req.file.originalname,
+            resource_type: 'auto',
+            format: 'pdf',
+            public_id: Date.now().toString(),
           },
           (error, result) => {
             if (error) reject(error);
@@ -68,9 +64,6 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
   }
 });
 
-// ============================
-// ✅ GET materials
-// ============================
 router.get('/', protect, async (req, res) => {
   try {
     const materials = await Material.find({ userId: req.user.id }).sort({ createdAt: -1 });
@@ -80,9 +73,6 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// ============================
-// ✅ DELETE material
-// ============================
 router.delete('/:id', protect, async (req, res) => {
   try {
     await Material.findByIdAndDelete(req.params.id);
