@@ -1,26 +1,28 @@
 const jwt = require('jsonwebtoken');
+
 const protect = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ msg: 'No token, access denied' });
-  }
-
   try {
-    const token = authHeader.split(' ')[1];
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    let token = req.headers.authorization;
+
+    // 1. Check token exists
+    if (!token || !token.startsWith('Bearer')) {
+      return res.status(401).json({ msg: 'No token, authorization denied' });
+    }
+
+    // 2. Remove "Bearer"
+    token = token.split(' ')[1];
+
+    // 3. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 4. Attach user to request
+    req.user = decoded;
+
     next();
   } catch (err) {
-    return res.status(401).json({ msg: 'Invalid token' });
+    console.error("AUTH ERROR:", err.message);
+    return res.status(401).json({ msg: 'Token is not valid' });
   }
 };
 
-// Admin only route - checks if user is admin
-const adminOnly = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ msg: 'Access denied. Admins only.' });
-  }
-  next();
-};
-
-module.exports = { protect, adminOnly };
+module.exports = { protect };
