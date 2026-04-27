@@ -23,7 +23,7 @@ const storage = new CloudinaryStorage({
   params: async (req, file) => {
     return {
       folder:        'flashmaster',
-      resource_type: 'raw',
+      resource_type: 'auto',
       public_id:     Date.now() + '-' + file.originalname,
     };
   },
