@@ -2,10 +2,7 @@ const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const jwt      = require('jsonwebtoken');
 const User     = require('../models/User');
-
-const router = express.Router(); // ✅ THIS WAS MISSING
-
-// ── REGISTER ──────────────────────────────────────────────
+const router = express.Router(); 
 router.post('/register', async (req, res) => {
   try {
     console.log("Register hit:", req.body);
@@ -45,8 +42,6 @@ router.post('/register', async (req, res) => {
     });
   }
 });
-
-// ── LOGIN ─────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;

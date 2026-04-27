@@ -1,6 +1,4 @@
 const jwt = require('jsonwebtoken');
-
-// Protect route - checks if user is logged in
 const protect = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
