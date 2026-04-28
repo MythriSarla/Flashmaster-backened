@@ -71,3 +71,14 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/materials/all — admin only
+const { protect } = require('../middleware/authMiddleware');
+router.get('/all', protect, async (req, res) => {
+  try {
+    const materials = await Material.find({}).sort({ createdAt: -1 });
+    res.json(materials);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
