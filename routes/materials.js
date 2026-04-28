@@ -13,6 +13,7 @@ cloudinary.config({
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// POST — upload material
 router.post('/', protect, upload.single('file'), async (req, res) => {
   try {
     let { subject, title, topic } = req.body;
@@ -28,9 +29,6 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
     let fileType = '';
 
     if (req.file) {
-      console.log('Buffer size:', req.file.buffer.length);
-      console.log('Mimetype:', req.file.mimetype);
-
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: 'flashmaster', resource_type: 'raw', public_id: Date.now().toString() + '.pdf' },
@@ -38,8 +36,6 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
         );
         stream.end(req.file.buffer);
       });
-
-      console.log('Uploaded URL:', result.secure_url);
       fileUrl  = result.secure_url;
       fileType = req.file.mimetype;
     }
@@ -52,6 +48,7 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
   }
 });
 
+// GET — user's own materials
 router.get('/', protect, async (req, res) => {
   try {
     const materials = await Material.find({ userId: req.user.id }).sort({ createdAt: -1 });
@@ -61,6 +58,17 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// GET — all materials for admin
+router.get('/all', protect, async (req, res) => {
+  try {
+    const materials = await Material.find({}).sort({ createdAt: -1 });
+    res.json(materials);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// DELETE — delete material
 router.delete('/:id', protect, async (req, res) => {
   try {
     await Material.findByIdAndDelete(req.params.id);
@@ -71,14 +79,3 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 module.exports = router;
-
-// GET /api/materials/all — admin only
-const { protect } = require('../middleware/authMiddleware');
-router.get('/all', protect, async (req, res) => {
-  try {
-    const materials = await Material.find({}).sort({ createdAt: -1 });
-    res.json(materials);
-  } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
