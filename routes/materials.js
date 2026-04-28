@@ -68,7 +68,7 @@ router.get('/all', protect, async (req, res) => {
   }
 });
 
-// DELETE — delete material
+
 router.delete('/:id', protect, async (req, res) => {
   try {
     await Material.findByIdAndDelete(req.params.id);
