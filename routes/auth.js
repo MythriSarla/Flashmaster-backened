@@ -88,3 +88,14 @@ router.get('/users', async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
+// GET /api/auth/users — admin only
+const { protect } = require('../middleware/authMiddleware');
+router.get('/users', protect, async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
